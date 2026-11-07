@@ -9,3 +9,7 @@ test('suma dos números', () => {
 test('resta dos números', () => {
   expect(restar(5, 3)).toBe(2);
 });
+
+test('multiplica dos números', () => {
+  expect(multiplicar(7, 8)).toBe(56);
+});
