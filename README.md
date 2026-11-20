@@ -90,6 +90,19 @@ npm test
 
 ---
 
+## 🔐 Credenciales de Docker Hub en Jenkins
+
+El `Jenkinsfile` obtiene las credenciales mediante `withCredentials`; no se guardan en el repositorio. Para habilitar la etapa de publicación:
+
+1. En Jenkins, abre **Manage Jenkins → Credentials** y añade una credencial de tipo **Username with password** en un almacén accesible para el job.
+2. Usa el usuario de Docker Hub como **Username** y un *Personal Access Token* de Docker Hub como **Password**. Para publicar imágenes, el token debe tener permiso de escritura.
+3. Asigna exactamente el ID `dockerhub-cred`, que es el que referencia el `Jenkinsfile`.
+4. Ejecuta el pipeline con `PUBLICAR` activado. Para practicar solo los tests y el build local sin configurar credenciales ni publicar, desactívalo.
+
+Esta configuración es reutilizable en otros ejercicios que corran en la misma instancia de Jenkins. Si el ejercicio usa otra instancia, crea allí una credencial equivalente con el mismo ID; los secretos no se transfieren con el repositorio.
+
+---
+
 ## 🔄 Flujo de Trabajo y Buenas Prácticas Git
 
 Para garantizar la trazabilidad académica y profesional del código:
