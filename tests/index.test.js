@@ -1,5 +1,5 @@
 // tests/index.test.js
-const { sumar, restar } =
+const { sumar, restar, multiplicar } =
   require('../src/index');
  
 test('suma dos números', () => {
