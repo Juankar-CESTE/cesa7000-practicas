@@ -24,9 +24,9 @@ jobs:
       - run: npm test
 
   docker:
-  needs: test
-  if: github.event_name != 'pull_request'
-  runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
     env:
       IMAGEN: ${{ vars.IMAGEN }}
       VERSION: gha-${{ github.run_number }}
