@@ -1,10 +1,15 @@
+# Workflow equivalente al Jenkinsfile (Tema 7, clase 8):
+# las mismas cuatro fases (Clonar, Tests, Build imagen Docker y Publicar)
+# repartidas en dos jobs (test y docker).
 name: CI
 
 on:
+  # Disparadores nativos de GitHub (equivalen a Poll SCM o webhook en Jenkins)
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  # Lanzamiento manual con formulario (equivale a parameters en Jenkins)
   workflow_dispatch:
     inputs:
       publicar:
@@ -13,30 +18,46 @@ on:
         default: true
 
 jobs:
+  # Job test: agrupa las fases de Clonar y Tests (runs-on equivale a agent any)
   test:
     runs-on: ubuntu-latest
     steps:
+      # Clonar: equivale a stage('Clonar') / checkout scm en Jenkinsfile
       - uses: actions/checkout@v6
+
+      # Tests: equivale a stage('Tests') en Jenkinsfile
+      # actions/setup-node equivale a tools { nodejs 'node24' } en Jenkins
       - uses: actions/setup-node@v6
         with:
           node-version: 24
       - run: npm ci
       - run: npm test
 
+  # Job docker: agrupa las fases de Build imagen Docker y Publicar
   docker:
+    # Espera a que test termine en verde (sin needs los jobs se ejecutan en paralelo)
     needs: test
+    # Equivale a when en Jenkins: en una PR no se construye ni se publica imagen
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    # Variables del job (equivale a environment en Jenkins)
     env:
+      # Variable del repositorio (Settings > Secrets and variables > Actions > Variables)
       IMAGEN: ${{ vars.IMAGEN }}
+      # Etiqueta propia de Actions; latest lo mantiene solo Jenkins para no pisarse
       VERSION: gha-${{ github.run_number }}
+      # En push a main publica siempre; en ejecución manual usa el input publicar
       PUBLICAR: ${{ github.event_name == 'push' || inputs.publicar }}
     steps:
+      # Clonar (repetido): cada job corre en una máquina nueva y limpia y no comparte ficheros con test
       - uses: actions/checkout@v6
 
+      # Build imagen Docker: equivale a stage('Build imagen') en Jenkinsfile
       - name: Build imagen
         run: docker build -t "$IMAGEN:$VERSION" .
 
+      # Publicar: equivale a stage('Publicar') en Jenkinsfile (login con secrets y docker push)
+      # docker/login-action usa secrets (equivale a withCredentials) y cierra sesión al terminar el job (equivale a post { always { docker logout } })
       - name: Login en DockerHub
         if: env.PUBLICAR == 'true'
         uses: docker/login-action@v4
