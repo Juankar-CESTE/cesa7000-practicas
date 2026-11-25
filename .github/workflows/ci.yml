@@ -33,6 +33,18 @@ jobs:
       - run: npm ci
       - run: npm test
 
+      # Guarda el informe de tests y la cobertura como artefacto (equivale a archiveArtifacts en
+      # Jenkins). if: always() lo sube también si los tests fallan. En Actions solo se descarga
+      # como zip; no se visualiza en la plataforma como en Jenkins.
+      - name: Guardar resultados de test
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: resultados-test
+          path: |
+            reports
+            coverage
+
   # Job docker: agrupa las fases de Build imagen Docker y Publicar
   docker:
     # Espera a que test termine en verde (sin needs los jobs se ejecutan en paralelo)
@@ -55,6 +67,19 @@ jobs:
       # Build imagen Docker: equivale a stage('Build imagen') en Jenkinsfile
       - name: Build imagen
         run: docker build -t "$IMAGEN:$VERSION" .
+
+      # Seguridad: equivale a stage('Seguridad') en Jenkinsfile. Trivy analiza la imagen recién construida
+      # antes de publicar; falla solo con vulnerabilidades críticas que ya tengan corrección. Se ejecuta la
+      # imagen oficial con versión fija (cadena de suministro) y el socket de Docker para ver la imagen local.
+      - name: Seguridad (Trivy)
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.76.2 image \
+            --severity CRITICAL \
+            --exit-code 1 \
+            --ignore-unfixed \
+            "$IMAGEN:$VERSION"
 
       # Publicar: equivale a stage('Publicar') en Jenkinsfile (login con secrets y docker push)
       # docker/login-action usa secrets (equivale a withCredentials) y cierra sesión al terminar el job (equivale a post { always { docker logout } })

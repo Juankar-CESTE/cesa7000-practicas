@@ -1,6 +1,15 @@
+# .dockerignore: lo que NO se envía al contexto de "docker build". Hace el build más rápido
+# y evita meter en la imagen ficheros que no hacen falta (o que no deben ir).
+
+# Dependencias locales: la imagen las instala ella misma con npm ci
 node_modules
+# Historial de Git y workflows de Actions: no tienen sentido dentro de la imagen
 .git
 .github
+# Tests: no se ejecutan en el contenedor
 tests
+# Informes generados al ejecutar los tests (cobertura y JUnit)
 coverage
+reports
+# Documentación
 *.md
