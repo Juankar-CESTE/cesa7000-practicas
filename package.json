@@ -24,5 +24,16 @@
   "homepage": "https://github.com/Juankar-CESTE/cesa7000-practicas#readme",
   "devDependencies": {
     "jest": "^30.5.2"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
   }
 }
