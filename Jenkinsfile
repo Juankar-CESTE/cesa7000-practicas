@@ -33,6 +33,15 @@ pipeline {
         sh 'npm ci'
         sh 'npm test'
       }
+      post {
+        always {
+          // Informe JUnit: pestaña de resultados de tests en cada build.
+          // allowEmptyResults: si npm ci falla y no hay XML, no añade otro error.
+          junit allowEmptyResults: true, testResults: 'reports/junit.xml'
+          // Artefactos: el build conserva el informe y la cobertura (coverage/index.html)
+          archiveArtifacts artifacts: 'reports/**, coverage/**', allowEmptyArchive: true
+        }
+      }
     }
 
     stage('Build imagen') {

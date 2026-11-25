@@ -33,6 +33,18 @@ jobs:
       - run: npm ci
       - run: npm test
 
+      # Guarda el informe de tests y la cobertura como artefacto (equivale a archiveArtifacts en
+      # Jenkins). if: always() lo sube también si los tests fallan. En Actions solo se descarga
+      # como zip; no se visualiza en la plataforma como en Jenkins.
+      - name: Guardar resultados de test
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: resultados-test
+          path: |
+            reports
+            coverage
+
   # Job docker: agrupa las fases de Build imagen Docker y Publicar
   docker:
     # Espera a que test termine en verde (sin needs los jobs se ejecutan en paralelo)

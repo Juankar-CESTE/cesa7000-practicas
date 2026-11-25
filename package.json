@@ -23,7 +23,8 @@
   },
   "homepage": "https://github.com/Juankar-CESTE/cesa7000-practicas#readme",
   "devDependencies": {
-    "jest": "^30.5.2"
+    "jest": "^30.5.2",
+    "jest-junit": "^17.0.0"
   },
   "jest": {
     "collectCoverage": true,
@@ -34,6 +35,16 @@
         "lines": 80,
         "statements": 80
       }
-    }
+    },
+    "reporters": [
+      "default",
+      [
+        "jest-junit",
+        {
+          "outputDirectory": "reports",
+          "outputName": "junit.xml"
+        }
+      ]
+    ]
   }
 }
