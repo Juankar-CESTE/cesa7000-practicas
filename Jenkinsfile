@@ -51,6 +51,26 @@ pipeline {
       }
     }
 
+    // Seguridad: Trivy analiza la imagen ya construida y ANTES de publicar. Se ejecuta como contenedor
+    // efímero (--rm): el socket de Docker le deja ver la imagen local y el volumen trivy-cache conserva
+    // la base de vulnerabilidades entre ejecuciones. Versión fija por la seguridad de la cadena de suministro.
+    // --severity CRITICAL: solo paran las críticas; --exit-code 1 hace fallar la etapa si las hay;
+    // --ignore-unfixed ignora las que aún no tienen versión corregida.
+    stage('Seguridad') {
+      steps {
+        sh """
+          docker run --rm \\
+            -v /var/run/docker.sock:/var/run/docker.sock \\
+            -v trivy-cache:/root/.cache/ \\
+            aquasec/trivy:0.76.2 image \\
+            --severity CRITICAL \\
+            --exit-code 1 \\
+            --ignore-unfixed \\
+            ${IMAGEN}:${VERSION}
+        """
+      }
+    }
+
     stage('Publicar') {
       when {
         expression { params.PUBLICAR }

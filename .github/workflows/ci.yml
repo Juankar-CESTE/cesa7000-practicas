@@ -68,6 +68,19 @@ jobs:
       - name: Build imagen
         run: docker build -t "$IMAGEN:$VERSION" .
 
+      # Seguridad: equivale a stage('Seguridad') en Jenkinsfile. Trivy analiza la imagen recién construida
+      # antes de publicar; falla solo con vulnerabilidades críticas que ya tengan corrección. Se ejecuta la
+      # imagen oficial con versión fija (cadena de suministro) y el socket de Docker para ver la imagen local.
+      - name: Seguridad (Trivy)
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.76.2 image \
+            --severity CRITICAL \
+            --exit-code 1 \
+            --ignore-unfixed \
+            "$IMAGEN:$VERSION"
+
       # Publicar: equivale a stage('Publicar') en Jenkinsfile (login con secrets y docker push)
       # docker/login-action usa secrets (equivale a withCredentials) y cierra sesión al terminar el job (equivale a post { always { docker logout } })
       - name: Login en DockerHub
