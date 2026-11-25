@@ -147,3 +147,10 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Terraform: el estado puede contener datos sensibles y tfvars depende de cada ordenador.
+# .terraform.lock.hcl SÍ se sube (fija la versión del provider, como package-lock.json).
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars

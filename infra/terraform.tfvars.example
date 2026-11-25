@@ -1,0 +1,12 @@
+# terraform.tfvars.example: plantilla de terraform.tfvars. Copiarla como terraform.tfvars y ajustarla.
+# terraform.tfvars NO se sube a Git (depende de cada ordenador y en proyectos reales suele llevar secretos).
+
+# Linux y Mac: es el valor por defecto, se puede omitir.
+# Windows con Docker Desktop: "npipe:////./pipe/dockerDesktopLinuxEngine"
+docker_host = "unix:///var/run/docker.sock"
+
+# Usuario de Docker Hub en minúsculas
+imagen = "juankaruva/calculadora:latest"
+
+# Puerto del ordenador (cambiarlo a 3001 recrea el contenedor)
+puerto = 3000
