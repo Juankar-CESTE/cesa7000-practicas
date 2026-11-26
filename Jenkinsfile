@@ -52,8 +52,8 @@ pipeline {
           // Informe JUnit: pestaña de resultados de tests en cada build.
           // allowEmptyResults: si npm ci falla y no hay XML, no añade otro error.
           junit allowEmptyResults: true, testResults: 'reports/junit.xml'
-          // Artefactos: el build conserva el informe y la cobertura (coverage/index.html)
-          archiveArtifacts artifacts: 'reports/**, coverage/**', allowEmptyArchive: true
+          // Artefactos: el build conserva el informe HTML de cobertura (coverage/lcov-report/index.html)
+          archiveArtifacts artifacts: 'coverage/lcov-report/**', allowEmptyArchive: true
         }
       }
     }
