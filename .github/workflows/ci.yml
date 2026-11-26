@@ -24,6 +24,8 @@ jobs:
     steps:
       # Clonar: equivale a stage('Clonar') / checkout scm en Jenkinsfile
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # historial completo: SonarQube lo necesita para saber qué código es nuevo
 
       # Tests: equivale a stage('Tests') en Jenkinsfile
       # actions/setup-node equivale a tools { nodejs 'node24' } en Jenkins
@@ -32,6 +34,20 @@ jobs:
           node-version: 24
       - run: npm ci
       - run: npm test
+
+      # Calidad (Tema 9): análisis de SonarQube Cloud. fetch-depth: 0 (arriba) da el historial completo para saber qué
+      # código es nuevo. Va después de npm test porque necesita la cobertura. args pasa la clave y la organización de
+      # Cloud, que sustituyen a las del fichero sonar-project.properties. Requisitos en GitHub (Settings > Secrets and
+      # variables > Actions): secret SONAR_TOKEN y variables SONAR_ORGANIZATION y SONAR_PROJECT_KEY; y en SonarQube
+      # Cloud, desactivar Administration > Analysis Method > Automatic Analysis.
+      - name: Análisis de calidad
+        uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
 
       # Guarda el informe de tests y la cobertura como artefacto (equivale a archiveArtifacts en
       # Jenkins). if: always() lo sube también si los tests fallan. En Actions solo se descarga
