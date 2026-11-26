@@ -58,6 +58,30 @@ pipeline {
       }
     }
 
+    // Calidad (Tema 9): análisis estático con SonarQube; lee sonar-project.properties y la cobertura de Jest.
+    // withSonarQubeEnv pasa la URL y el token del servidor 'sonarqube' (Manage Jenkins > System > SonarQube
+    // servers: URL http://sonarqube:9000 y la credencial sonar-token). tool 'sonar-scanner' devuelve dónde está
+    // instalado el escáner (Manage Jenkins > Tools > SonarQube Scanner installations, nombre sonar-scanner).
+    stage('Calidad') {
+      steps {
+        withSonarQubeEnv('sonarqube') {
+          sh "${tool 'sonar-scanner'}/bin/sonar-scanner"
+        }
+      }
+    }
+
+    // Quality Gate: espera el veredicto de SonarQube (la nota del código nuevo) y detiene el pipeline si no pasa,
+    // antes de construir la imagen. SonarQube avisa por un webhook (Administration > Configuration > Webhooks,
+    // URL http://jenkins:8080/sonarqube-webhook/: con el nombre del contenedor, no localhost). El timeout evita
+    // esperar para siempre si el webhook falla.
+    stage('Quality Gate') {
+      steps {
+        timeout(time: 5, unit: 'MINUTES') {
+          waitForQualityGate abortPipeline: true
+        }
+      }
+    }
+
     // Build imagen: construye la imagen con el Dockerfile y le pone dos etiquetas: la versión del build
     // (1.0.<n>) y latest. Necesita el socket de Docker montado en el contenedor de Jenkins.
     stage('Build imagen') {
