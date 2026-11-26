@@ -40,10 +40,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: resultados-test
+          name: resultados-tests
           path: |
-            reports
-            coverage
+            reports/
+            coverage/lcov-report/
 
   # Job docker: agrupa las fases de Build imagen Docker y Publicar
   docker:
@@ -69,17 +69,20 @@ jobs:
         run: docker build -t "$IMAGEN:$VERSION" .
 
       # Seguridad: equivale a stage('Seguridad') en Jenkinsfile. Trivy analiza la imagen recién construida
-      # antes de publicar; falla solo con vulnerabilidades críticas que ya tengan corrección. Se ejecuta la
-      # imagen oficial con versión fija (cadena de suministro) y el socket de Docker para ver la imagen local.
+      # antes de publicar; falla solo con vulnerabilidades críticas que ya tengan corrección. Si falla, Login y
+      # Publicar no se ejecutan, igual que en Jenkins.
+      # Cadena de suministro (Tema 9): en marzo de 2026 movieron las etiquetas de esta acción a código malicioso.
+      # Por eso se fija por el SHA del COMMIT (una etiqueta se puede mover, un SHA no) y se fija también la
+      # versión de Trivy, la misma que en Jenkins. El SHA ha de ser el del commit, no el del objeto de la etiqueta
+      # anotada (git rev-parse v0.36.0^{commit}); si no, falla con "Unable to resolve action".
       - name: Seguridad (Trivy)
-        run: |
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            aquasec/trivy:0.76.2 image \
-            --severity CRITICAL \
-            --exit-code 1 \
-            --ignore-unfixed \
-            "$IMAGEN:$VERSION"
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGEN }}:${{ env.VERSION }}
+          version: v0.76.2
+          severity: CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
 
       # Publicar: equivale a stage('Publicar') en Jenkinsfile (login con secrets y docker push)
       # docker/login-action usa secrets (equivale a withCredentials) y cierra sesión al terminar el job (equivale a post { always { docker logout } })
